@@ -1,0 +1,45 @@
+title: Certutil File Download
+
+id: 66666666-6666-6666-6666-666666666666
+
+status: experimental
+
+description: Detects file downloads performed via certutil.exe.
+
+author: Nikolai Kruchkov
+
+date: 2026-06-01
+
+references:
+  - https://attack.mitre.org/techniques/T1105/
+  - https://attack.mitre.org/techniques/T1218/
+
+logsource:
+  product: windows
+  category: process_creation
+
+detection:
+
+  selection_image:
+    Image|endswith:
+      - '\certutil.exe'
+
+  selection_download:
+    CommandLine|contains:
+      - 'http://'
+      - 'https://'
+      - '-urlcache'
+      - '-split'
+
+  condition: selection_image and selection_download
+
+falsepositives:
+  - Administrative downloads
+  - Software deployment tooling
+
+level: high
+
+tags:
+  - attack.command_and_control
+  - attack.t1105
+  - attack.defense_evasion
