@@ -1,0 +1,33 @@
+title: PowerShell Encoded Command Execution
+
+id: 11111111-1111-1111-1111-111111111111
+
+status: experimental
+
+description: Detects PowerShell execution with encoded command arguments.
+
+author: Nikolai Kruchkov
+
+date: 2026-06-01
+
+logsource:
+  product: windows
+  category: process_creation
+
+detection:
+  selection:
+    CommandLine|contains:
+      - "-enc"
+      - "-encodedcommand"
+
+  condition: selection
+
+falsepositives:
+  - Administrative scripts
+  - Automation tools
+
+level: medium
+
+tags:
+  - attack.execution
+  - attack.t1059.001
