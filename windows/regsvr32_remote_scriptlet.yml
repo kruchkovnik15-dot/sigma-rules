@@ -1,0 +1,44 @@
+title: Regsvr32 Remote Scriptlet Execution
+
+id: 77777777-7777-7777-7777-777777777777
+
+status: experimental
+
+description: Detects regsvr32.exe executing remote scriptlets via scrobj.dll (Squiblydoo technique).
+
+author: Nikolai Kruchkov
+
+date: 2026-06-01
+
+references:
+  - https://attack.mitre.org/techniques/T1218/010/
+  - https://lolbas-project.github.io/lolbas/Binaries/Regsvr32/
+
+logsource:
+  product: windows
+  category: process_creation
+
+detection:
+
+  selection_image:
+    Image|endswith:
+      - '\regsvr32.exe'
+
+  selection_command:
+    CommandLine|contains:
+      - 'scrobj.dll'
+      - 'http://'
+      - 'https://'
+
+  condition: selection_image and selection_command
+
+falsepositives:
+  - Administrative scripting
+  - Internal testing
+
+level: high
+
+tags:
+  - attack.defense_evasion
+  - attack.execution
+  - attack.t1218.010
