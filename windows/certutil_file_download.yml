@@ -1,18 +1,19 @@
-title: Certutil File Download
+title: Suspicious Certutil Payload Retrieval Or Decode Activity
 
-id: 66666666-6666-6666-6666-666666666666
+id: 8c9dcb32-7f43-42e5-92ec-7c2a1f5a4d31
 
-status: experimental
+status: stable
 
-description: Detects file downloads performed via certutil.exe.
+description: Detects Certutil usage associated with payload download, file decoding, certificate abuse, alternate data streams, and LOLBin tradecraft commonly observed during malware delivery and post-exploitation.
 
 author: Nikolai Kruchkov
 
-date: 2026-06-01
+date: 2026-06-02
 
 references:
   - https://attack.mitre.org/techniques/T1105/
-  - https://attack.mitre.org/techniques/T1218/
+  - https://attack.mitre.org/techniques/T1140/
+  - https://lolbas-project.github.io/lolbas/Binaries/Certutil/
 
 logsource:
   product: windows
@@ -29,13 +30,25 @@ detection:
       - 'http://'
       - 'https://'
       - '-urlcache'
-      - '-split'
+      - '-verifyctl'
 
-  condition: selection_image and selection_download
+  selection_decode:
+    CommandLine|contains:
+      - '-decode'
+      - '-decodehex'
+      - '-encode'
+
+  selection_ads:
+    CommandLine|contains:
+      - ':Zone.Identifier'
+      - ':payload'
+
+  condition: selection_image and 1 of selection_*
 
 falsepositives:
-  - Administrative downloads
-  - Software deployment tooling
+  - Certificate management operations
+  - PKI administration
+  - Approved deployment tooling
 
 level: high
 
@@ -43,3 +56,4 @@ tags:
   - attack.command_and_control
   - attack.t1105
   - attack.defense_evasion
+  - attack.t1140
