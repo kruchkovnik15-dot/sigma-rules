@@ -1,14 +1,14 @@
-title: Regsvr32 Remote Scriptlet Execution
+title: Suspicious Regsvr32 Remote Scriptlet Execution
 
-id: 77777777-7777-7777-7777-777777777777
+id: b42e44d6-c31a-4e95-a51f-74cb1d48e5ab
 
-status: experimental
+status: stable
 
-description: Detects regsvr32.exe executing remote scriptlets via scrobj.dll (Squiblydoo technique).
+description: Detects Regsvr32 abuse involving remote scriptlets, Squiblydoo tradecraft, suspicious DLL retrieval, and proxy execution techniques frequently observed during malware delivery and defense evasion.
 
 author: Nikolai Kruchkov
 
-date: 2026-06-01
+date: 2026-06-02
 
 references:
   - https://attack.mitre.org/techniques/T1218/010/
@@ -24,17 +24,30 @@ detection:
     Image|endswith:
       - '\regsvr32.exe'
 
-  selection_command:
+  selection_remote:
     CommandLine|contains:
-      - 'scrobj.dll'
       - 'http://'
       - 'https://'
+      - 'ftp://'
 
-  condition: selection_image and selection_command
+  selection_scriptlet:
+    CommandLine|contains:
+      - 'scrobj.dll'
+      - '.sct'
+
+  selection_silent:
+    CommandLine|contains:
+      - '/s'
+      - '/n'
+      - '/u'
+      - '/i:'
+
+  condition: selection_image and selection_remote and 1 of selection_*
 
 falsepositives:
   - Administrative scripting
-  - Internal testing
+  - Application registration workflows
+  - Internal software testing
 
 level: high
 
