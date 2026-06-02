@@ -1,0 +1,69 @@
+title: Suspicious LSASS Memory Access By Non-Standard Process
+id: 8f7b1d21-4c8e-4e3a-9f4b-1c6a7d9e2f35
+status: stable
+
+description: Detects suspicious non-standard processes requesting high-privilege access to LSASS memory, which may indicate credential dumping activity using tools such as Mimikatz, ProcDump, custom dumpers, or LOLBin-based access patterns.
+
+author: Nikolai Kruchkov
+date: 2026-06-02
+
+references:
+
+* https://attack.mitre.org/techniques/T1003/001/
+* https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon
+
+logsource:
+product: windows
+category: process_access
+
+detection:
+
+selection_target:
+TargetImage|endswith:
+- '\lsass.exe'
+
+selection_access:
+GrantedAccess|contains:
+- '0x1010'
+- '0x1410'
+- '0x143a'
+- '0x1fffff'
+- '0x1f0fff'
+
+selection_suspicious_source:
+SourceImage|endswith:
+- '\procdump.exe'
+- '\rundll32.exe'
+- '\powershell.exe'
+- '\pwsh.exe'
+- '\cmd.exe'
+- '\wmic.exe'
+- '\taskmgr.exe'
+- '\comsvcs.dll'
+
+filter_known_security_tools:
+SourceImage|contains:
+- '\Microsoft Defender'
+- '\Windows Defender'
+- '\CrowdStrike'
+- '\SentinelOne'
+- '\CarbonBlack'
+- '\Elastic'
+- '\Wazuh'
+
+condition: selection_target and selection_access and selection_suspicious_source and not filter_known_security_tools
+
+falsepositives:
+
+* EDR or AV memory scanning
+* Approved incident response memory acquisition
+* Administrator-initiated process inspection
+* Internal security testing
+
+level: critical
+
+tags:
+
+* attack.credential_access
+* attack.t1003.001
+* attack.defense_evasion
