@@ -1,16 +1,19 @@
-title: Office Application Spawning CMD
-id: 3d85c2d8-fc0c-4dc7-a6b0-9e47d54e4c21
-status: test
+title: Suspicious Office Spawned Command Shell Activity
 
-description: Detects Microsoft Office applications spawning cmd.exe which may indicate malicious macro execution or user execution activity.
+id: 52dbdf73-c7d7-4f2e-b56e-fc4f66c5f981
+
+status: stable
+
+description: Detects Microsoft Office applications spawning cmd.exe with command-line patterns associated with payload execution, LOLBins abuse, script execution, reconnaissance, or malware delivery.
 
 author: Nikolai Kruchkov
 
-date: 2026-06-01
+date: 2026-06-02
 
 references:
   - https://attack.mitre.org/techniques/T1204/
   - https://attack.mitre.org/techniques/T1059/003/
+  - https://lolbas-project.github.io/
 
 logsource:
   product: windows
@@ -29,17 +32,36 @@ detection:
     Image|endswith:
       - '\cmd.exe'
 
-  condition: selection_parent and selection_child
+  selection_suspicious:
+    CommandLine|contains:
+      - 'powershell'
+      - 'pwsh'
+      - 'certutil'
+      - 'bitsadmin'
+      - 'curl'
+      - 'wget'
+      - 'mshta'
+      - 'regsvr32'
+      - 'rundll32'
+      - 'whoami'
+      - 'net user'
+      - 'net group'
+      - 'nltest'
+      - 'dsquery'
+      - 'ipconfig'
+      - 'tasklist'
+
+  condition: selection_parent and selection_child and selection_suspicious
 
 falsepositives:
   - Administrative automation
-  - Internal office integrations
-  - Approved business tooling
+  - Approved Office integrations
+  - Enterprise software deployment workflows
 
 level: high
 
 tags:
   - attack.execution
   - attack.t1059.003
-  - attack.user_execution
-  - attack.t1204
+  - attack.initial_access
+  - attack.discovery
