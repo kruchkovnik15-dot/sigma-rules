@@ -1,10 +1,10 @@
-title: Suspicious Regsvr32 Remote Scriptlet Execution
+title: Regsvr32 Remote Scriptlet Execution (Squiblydoo)
 
-id: b42e44d6-c31a-4e95-a51f-74cb1d48e5ab
+id: c6f9e7d8-5c4e-4d63-8d4a-7a6a9c3d8b21
 
 status: stable
 
-description: Detects Regsvr32 abuse involving remote scriptlets, Squiblydoo tradecraft, suspicious DLL retrieval, and proxy execution techniques frequently observed during malware delivery and defense evasion.
+description: Detects Regsvr32 executing remote scriptlets via scrobj.dll, a LOLBin technique commonly used for defense evasion and payload execution.
 
 author: Nikolai Kruchkov
 
@@ -24,32 +24,29 @@ detection:
     Image|endswith:
       - '\regsvr32.exe'
 
+  selection_scrobj:
+    CommandLine|contains:
+      - 'scrobj.dll'
+
   selection_remote:
     CommandLine|contains:
       - 'http://'
       - 'https://'
-      - 'ftp://'
 
-  selection_scriptlet:
-    CommandLine|contains:
-      - 'scrobj.dll'
-      - '.sct'
-
-  selection_silent:
+  selection_flags:
     CommandLine|contains:
       - '/s'
-      - '/n'
       - '/u'
       - '/i:'
 
-  condition: selection_image and selection_remote and 1 of selection_*
+  condition: selection_image and selection_scrobj and selection_remote and 1 of selection_flags
 
 falsepositives:
-  - Administrative scripting
-  - Application registration workflows
-  - Internal software testing
+  - Security testing
+  - Red team activity
+  - Approved administrative scripting
 
-level: high
+level: critical
 
 tags:
   - attack.defense_evasion
