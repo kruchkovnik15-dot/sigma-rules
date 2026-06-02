@@ -1,12 +1,14 @@
-title: Office Application Spawning PowerShell
-id: 91d73f5f-5d1f-4f58-8b68-7f7c9e4d2b11
-status: test
+title: Suspicious Office Child Process PowerShell Execution
 
-description: Detects Microsoft Office applications spawning PowerShell which may indicate malicious macro execution.
+id: a3d8c6f1-1c42-4d7d-a3b8-6f2a9f7e1c12
+
+status: stable
+
+description: Detects Microsoft Office applications spawning PowerShell with suspicious execution parameters frequently associated with phishing payloads, malware delivery, macro abuse, and post-exploitation activity.
 
 author: Nikolai Kruchkov
 
-date: 2026-06-01
+date: 2026-06-02
 
 references:
   - https://attack.mitre.org/techniques/T1204/
@@ -30,17 +32,26 @@ detection:
       - '\powershell.exe'
       - '\pwsh.exe'
 
-  condition: selection_parent and selection_child
+  selection_flags:
+    CommandLine|contains:
+      - '-nop'
+      - '-w hidden'
+      - '-windowstyle hidden'
+      - '-executionpolicy bypass'
+      - '-ep bypass'
+      - '-enc'
+      - '-encodedcommand'
+
+  condition: selection_parent and selection_child and selection_flags
 
 falsepositives:
-  - Administrative automation
-  - Internal office integrations
-  - Approved business tooling
+  - Internal automation frameworks
+  - Approved administrative scripts
+  - Enterprise software deployment tooling
 
 level: high
 
 tags:
   - attack.execution
   - attack.t1059.001
-  - attack.user_execution
-  - attack.t1204
+  - attack.initial_access
